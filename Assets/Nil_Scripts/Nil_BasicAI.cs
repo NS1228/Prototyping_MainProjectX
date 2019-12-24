@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -15,7 +14,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         public enum State
         {
             PATROL,
-            CHASE
+            CHASE,
+            SEARCH
         }
 
         public State state;
@@ -23,12 +23,19 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         //variables4Patrolling
         public GameObject[] waypoints;
-        private int waypointsInd = 0;
+        private int waypointsInd;
         public float patrolSpeed = 0.5f;
 
         //variable4Chasing
         public float chaseSpeed = 1f;
         public GameObject target;
+
+        //variables4Searching
+        public float searchSpeed = 0;
+        public float lookSpeed = 0;
+        
+
+
 
 
         // Start is called before the first frame update
@@ -40,9 +47,14 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             agent.updatePosition = true;
             agent.updateRotation = false;
 
+            waypoints = GameObject.FindGameObjectsWithTag("Waypoints");
+            waypointsInd = Random.Range(0, waypoints.Length);
+
             state = Nil_BasicAI.State.PATROL;
 
             alive = true;
+
+           
 
             //StartCoroutine("FSM");
         }
@@ -64,10 +76,15 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                     case State.CHASE:
                         Chase();
                         break;
+                    case State.SEARCH:
+                        Search();
+                        break;
                 }
                 yield return null; 
                   
             }
+
+            
         }
 
         void Patrol()
@@ -80,11 +97,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             }
             else if (Vector3.Distance (this.transform.position, waypoints[waypointsInd].transform.position) <=2)
             {
-                waypointsInd += 1;
-                if (waypointsInd > waypoints.Length)
-                {
-                    waypointsInd = 0;
-                }
+                waypointsInd = Random.Range(0, waypoints.Length);
             }
             else
             {
@@ -99,13 +112,23 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             character.Move(agent.desiredVelocity, false, false);
         }
 
+        void Search ()
+        {
+            
+            {
+                agent.SetDestination(target.transform.position);
+                agent.speed = searchSpeed;
+                character.Move(agent.desiredVelocity, false, false);
+            }
+        }
+
         void OnTriggerEnter (Collider coll)
         {
             if (coll.tag == "Player")
             {
-                state = Nil_BasicAI.State.CHASE;
-                target = coll.gameObject;
-                print("some");
+                //state = Nil_BasicAI.State.CHASE;
+                //target = coll.gameObject;
+                //print("some");
             }
         }
 
